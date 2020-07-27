@@ -1,0 +1,59 @@
+name: Release || fiskaly Swift SDK 
+
+on: 
+  push:
+    tags:
+    - 'v*'
+
+jobs:
+  release:
+
+    runs-on: macOS-latest
+
+    steps: 
+      - name: Checkout 
+        uses: actions/checkout@v1
+
+      - name: Force Xcode 11.3
+        run: |
+          sudo xcode-select \
+                  -switch /Applications/XCode_11.3.app
+
+      - name: Xcode version
+        run: /usr/bin/xcodebuild -version
+
+      - name: iOS build framework
+        run: |
+          xcodebuild clean build \
+                  -project FiskalySDK.xcodeproj \
+                  -scheme FiskalySDK \
+                  - configuration Release \
+                  -destination generic/platform=ios \
+                  CONFIGURATION_BUILD_DIR=$PWD/Build
+
+      - name: Copy and Zip
+        run: |
+          cd Build &&
+          zip -r FiskalySDK.zip FiskalySDK.framework ../license.txt
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Build/FisklaySDK.zip
+          asset_name: FisklaySDK.zip
+          asset_content_type: application/zip
