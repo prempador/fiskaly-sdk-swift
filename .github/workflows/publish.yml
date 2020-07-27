@@ -27,7 +27,7 @@ jobs:
           xcodebuild clean build \
                   -project FiskalySDK.xcodeproj \
                   -scheme FiskalySDK \
-                  - configuration Release \
+                  -configuration Release \
                   -destination generic/platform=ios \
                   CONFIGURATION_BUILD_DIR=$PWD/Build
 
